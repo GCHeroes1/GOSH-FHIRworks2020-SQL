@@ -1,10 +1,8 @@
 from collections import OrderedDict
-
-from flask import Flask, request
+from flask import Flask, request, render_template
 import datetime as date
 from datetime import datetime
 import requests
-import json #for debugging
 
 app = Flask(__name__)
 
@@ -243,7 +241,7 @@ def encounterQueryConstruction(ID, header, FHIR_BASE_URL):
     # print("This is the FHIR encounter query that has been generated: " + encounterQuery)
     return encounterQuery.replace(':exact', '')
 
-def encounterJSONConstruction(ID, encounterQuery, header):
+def encounterJSONConstruction(encounterQuery, header):
     encounterList = JSONResponse(encounterQuery, header)
     encounterData = OrderedDict()
     j = 0
@@ -370,11 +368,11 @@ def pushToFHIR(data, token, FHIR_BASE_URL):
 
 @app.route('/')
 def home():
-    return 'Hello World'
+    return render_template('index.html')
 
-@app.route('/test')
-def test():
-  return 'this is a test'
+# @app.route('/test')
+# def test():
+#   return 'this is a test'
 
 def headerProcessing(requestObject):
     headers = requestObject.headers
@@ -506,7 +504,7 @@ def encounterSearch():
     else:
         return "Please supply a patient ID as a parameter"
     encounterQuery = encounterQueryConstruction(ID, headersSQL, FHIR_BASE_URL)
-    encounterData = encounterJSONConstruction(ID, encounterQuery, headersSQL)
+    encounterData = encounterJSONConstruction(encounterQuery, headersSQL)
     if len(encounterData) == 0:
         return "The patient has never had an encounter"
     else:
