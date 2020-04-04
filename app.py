@@ -368,7 +368,7 @@ def pushToFHIR(data, token, FHIR_BASE_URL):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return "link for documentation: https://app.swaggerhub.com/apis-docs/GCHeroes1/FHIR-SQL-API/1.0.0"
 
 # @app.route('/test')
 # def test():
