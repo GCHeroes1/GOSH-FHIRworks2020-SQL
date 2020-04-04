@@ -17,7 +17,7 @@ keyrings.alt==3.0
 lockfile==0.12.2
 MarkupSafe==1.1.1
 monotonic==1.0
-paramiko==2.0.0
+paramiko==2.0.9
 pexpect==4.2.1
 pyasn1==0.4.2
 pycairo==1.16.2
