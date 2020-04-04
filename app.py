@@ -113,34 +113,39 @@ def FHIRQueryGeneration(queryInput, header):
     print("This is the FHIR query that has been generated: " + query)
     return query
 
+def patientJSONParser(patientData, patientList, index):
+    patientData[index + 1] = {
+            "id": patientList["id"],
+            "name": patientList["name"][0]["given"][0],
+            "surname": patientList["name"][0]["family"],
+            "gender": patientList["gender"],
+            "birthdate": patientList["birthDate"],
+    }
+    if "deceasedDateTime" in patientList:
+        patientData[index + 1]["deceased time"] = patientList["deceasedDateTime"]
+    if "identifier" in patientList:
+        patientData[index + 1]["social security number"] = patientList["identifier"][2]["value"]
+    if "address" in patientList:
+        patientData[index + 1]["address"] = {
+                "line": patientList["address"][0]["line"][0],
+                "city": patientList["address"][0]["city"],
+                "state": patientList["address"][0]["state"],
+                "country": patientList["address"][0]["country"]
+        }
+    if "maritalStatus" in patientList:
+        patientData[index + 1]["marital status"] = patientList["maritalStatus"]["text"]
+    if "communication" in patientList:
+        patientData[index + 1]["communication"] = patientList["communication"][0]["language"][
+            "text"]
+    return patientData
+
 def patientJSONConstruction(patientList, header):
     patientData = OrderedDict()
     j = 0
     if len(patientList) == 6:
         while True:
             for i in range(0, len(patientList["entry"])):
-                patientData[j+1] = {
-                        "id": patientList["entry"][i]["resource"]["id"],
-                        "name": patientList["entry"][i]["resource"]["name"][0]["given"][0],
-                        "surname": patientList["entry"][i]["resource"]["name"][0]["family"],
-                        "gender": patientList["entry"][i]["resource"]["gender"],
-                        "birthdate": patientList["entry"][i]["resource"]["birthDate"],
-                }
-                if "deceasedDateTime" in patientList["entry"][i]["resource"]:
-                    patientData[j+1]["deceased time"] = patientList["entry"][i]["resource"]["deceasedDateTime"]
-                if "identifier" in patientList["entry"][i]["resource"]:
-                    patientData[j+1]["social security number"] = patientList["entry"][i]["resource"]["identifier"][2]["value"]
-                if "address" in patientList["entry"][i]["resource"]:
-                    patientData[j+1]["address"] = {
-                            "line": patientList["entry"][i]["resource"]["address"][0]["line"][0],
-                            "city": patientList["entry"][i]["resource"]["address"][0]["city"],
-                            "state": patientList["entry"][i]["resource"]["address"][0]["state"],
-                            "country": patientList["entry"][i]["resource"]["address"][0]["country"]
-                    }
-                if "maritalStatus" in patientList["entry"][i]["resource"]:
-                    patientData[j+1]["marital status"] = patientList["entry"][i]["resource"]["maritalStatus"]["text"]
-                if "communication" in patientList["entry"][i]["resource"]:
-                    patientData[j+1]["communication"] = patientList["entry"][i]["resource"]["communication"][0]["language"]["text"]
+                patientData = patientJSONParser(patientData, patientList["entry"][i]["resource"], j)
                 j += 1
             if patientList["link"][0]["relation"] != "next":
                 break
@@ -380,6 +385,40 @@ def headerProcessing(requestObject):
         token = None
     ID = requestObject.args.get("id")
     return FHIR_BASE_URL, token, ID
+
+@app.route('/Patient', methods=["GET"])
+def patients():
+    FHIR_BASE_URL, token, ID = headerProcessing(request)
+    if token is None:
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+    if FHIR_BASE_URL is None:
+        return "Please include a FHIR_BASE_URL"
+    headersSQL = make_auth_header(token)
+    patientList = JSONResponse(FHIR_BASE_URL + "/Patient", headersSQL)
+    patientData = patientJSONConstruction(patientList, headersSQL)
+    return patientData
+
+@app.route('/Patient/<string:identifier>', methods=["GET"])
+def patient(identifier):
+    print(identifier)
+    FHIR_BASE_URL, token, ID = headerProcessing(request)
+    ID = identifier
+    if token is None:
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+    if FHIR_BASE_URL is None:
+        return "Please include a FHIR_BASE_URL"
+    headersSQL = make_auth_header(token)
+    if ID is not None:
+        ID = ID.replace("\"", "").replace(" ", "")
+        patientVerification = JSONResponse(FHIR_BASE_URL + "/Patient/" + ID, headersSQL)
+        if "issue" in patientVerification:
+            return "Please enter a valid patient ID"
+    else:
+        return "Please supply a patient ID as a parameter"
+    patientList = JSONResponse(FHIR_BASE_URL + "/Patient/" + ID, headersSQL)
+    patientData = {}
+    patientData = patientJSONParser(patientData, patientList, 0)
+    return patientData[1]
 
 @app.route('/patientSearch', methods=["GET"])
 def patientSearch():
