@@ -3,7 +3,7 @@ Babel==2.8.0
 certifi==2019.11.28
 chardet==3.0.4
 Click==7.0
-cryptography==2.1.4
+cryptography==2.3
 duplicity==0.7.17
 enum34==1.1.6
 fasteners==0.12.0
