@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import datetime as date
 from datetime import datetime
 import requests
@@ -394,7 +394,7 @@ def patients():
     headersSQL = make_auth_header(token)
     patientList = JSONResponse(FHIR_BASE_URL + "/Patient", headersSQL)
     patientData = patientJSONConstruction(patientList, headersSQL)
-    return patientData
+    return jsonify(patientData)
 
 @app.route('/Patient/<string:identifier>', methods=["GET"])
 def patient(identifier):
@@ -414,7 +414,7 @@ def patient(identifier):
     else:
         return "Please supply a patient ID as a parameter"
     patientList = JSONResponse(FHIR_BASE_URL + "/Patient/" + ID, headersSQL)
-    patientData = {}
+    patientData = OrderedDict()
     patientData = patientJSONParser(patientData, patientList, 0)
     return patientData[1]
 
