@@ -114,8 +114,6 @@ def FHIRQueryGeneration(queryInput, header):
 def patientJSONParser(patientData, patientList, index):
     patientData[index + 1] = {
             "id": patientList["id"],
-            "name": patientList["name"][0]["given"][0],
-            "surname": patientList["name"][0]["family"],
             "gender": patientList["gender"],
             "birthdate": patientList["birthDate"],
     }
@@ -135,6 +133,13 @@ def patientJSONParser(patientData, patientList, index):
     if "communication" in patientList:
         patientData[index + 1]["communication"] = patientList["communication"][0]["language"][
             "text"]
+    if "name" in patientList:
+        patientData[index+1]["name"] = {
+                "given": patientList["name"][0]["given"][0],
+                "family": patientList["name"][0]["family"]
+        }
+        if "prefix" in patientList["name"][0]:
+            patientData[index + 1]["name"]["prefix"] = patientList["name"][0]["prefix"][0]
     return patientData
 
 def patientJSONConstruction(patientList, header):
