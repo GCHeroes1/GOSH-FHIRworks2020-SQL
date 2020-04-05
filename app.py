@@ -441,7 +441,7 @@ def patientSearch():
         patientData = patientJSONConstruction(patientList, headersSQL)
         if ID is not None:
             try:
-                return patientData[str(ID)]["id"]
+                return patientData[int(ID)]
             except:
                 return "Out of bounds selection"
         else:
