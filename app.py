@@ -581,3 +581,6 @@ def observationPush():
                ", new observation ID for heart rate is " + idHR
     else:
         return "Please check that you have entered valid values for heart rate (XX.X) or both systolic (XXX.X) and diastolic (XX.X)"
+
+if __name__=='__main__':
+    app.run()
