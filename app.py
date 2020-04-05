@@ -1,10 +1,15 @@
 from collections import OrderedDict
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request
 import datetime as date
 from datetime import datetime
 import requests
 
 app = Flask(__name__)
+
+SQL_TOOLKIT_URL = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?" \
+                  "code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONRnTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery"
+JSON_FHIR_TOOLKIT_URL = "https://json-fhir-tool.azurewebsites.net/api/json-fhir-tool"
+DOCUMENTATION_URL = "https://app.swaggerhub.com/apis-docs/GCHeroes1/FHIR-SQL-API/1.0.0"
 
 def generateToken(headersObject):
     CLIENT_ID = headersObject.get("CLIENT_ID")
@@ -75,7 +80,7 @@ def SQLFieldConstruction(argsObject):
     return fields
 
 def SQLQueryConstruction(querySettings, FHIR_BASE_URL):
-    queryConstruction = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONRnTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery=SELECT * FROM Patient "
+    queryConstruction = SQL_TOOLKIT_URL + "=SELECT * FROM Patient "
     columnHeaders = ["name", "family", "birthdate", "gender", "prefix", "communication"]
     flag = False
     whereFlag = True
@@ -96,7 +101,7 @@ def SQLQueryConstruction(querySettings, FHIR_BASE_URL):
             if whereFlag:
                 flag = False
     queryConstruction += " LIMIT 100&fhirServer=" + FHIR_BASE_URL.strip("https://")
-    print("This the SQL query that has been generated: " + queryConstruction)
+    # print("This the SQL query that has been generated: " + queryConstruction)
     return queryConstruction
 
 def JSONResponse(query, header):
@@ -108,7 +113,7 @@ def FHIRQueryGeneration(queryInput, header):
         query = queryFetch["fhirQuery"]
     except Exception as e:
         query = None
-    print("This is the FHIR query that has been generated: " + query)
+    # print("This is the FHIR query that has been generated: " + query)
     return query
 
 def patientJSONParser(patientData, patientList, index):
@@ -162,9 +167,8 @@ def patientJSONConstruction(patientList, header):
     # return json.dumps(patientData, indent=4)
 
 def medicationQueryConstruction(ID, header, FHIR_BASE_URL):
-    medicationQueryConstruction = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONR" \
-                      "nTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery=SELECT * FROM MedicationRequest WHERE id=\'" + \
-                      ID + "\' LIMIT 100&fhirServer=" + FHIR_BASE_URL.strip("https://")
+    medicationQueryConstruction = SQL_TOOLKIT_URL + "=SELECT * FROM MedicationRequest WHERE id=\'" \
+                                  + ID + "\' LIMIT 100&fhirServer=" + FHIR_BASE_URL.strip("https://")
     # print("This the SQL query that has been generated: " + medicationQueryConstruction)
     medicationQuery = FHIRQueryGeneration(medicationQueryConstruction, header)
     # print("This is the FHIR Medication query that has been generated: " + medicationQuery)
@@ -199,9 +203,8 @@ def medicationJSONConstruction(ID, medicationQuery, header):
     return medicationData
 
 def conditionQueryConstruction(ID, header, FHIR_BASE_URL):
-    conditionQueryConstruction = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONR" \
-                      "nTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery=SELECT * FROM Condition WHERE id=\'" + \
-                      ID + "\' LIMIT 100&fhirServer=" + FHIR_BASE_URL.strip("https://")
+    conditionQueryConstruction = SQL_TOOLKIT_URL + "=SELECT * FROM Condition WHERE id=\'" + \
+                                 ID + "\' LIMIT 100&fhirServer=" + FHIR_BASE_URL.strip("https://")
     # print("This the SQL query that has been generated: " + conditionQueryConstruction)
     conditionQuery = FHIRQueryGeneration(conditionQueryConstruction, header)
     # print("This is the FHIR condition query that has been generated: " + conditionQuery)
@@ -238,9 +241,8 @@ def conditionJSONConstruction(ID, conditionQuery, header):
     return conditionData
 
 def encounterQueryConstruction(ID, header, FHIR_BASE_URL):
-    encounterQueryConstruction = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONR" \
-                      "nTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery=SELECT * FROM Encounter WHERE subject=\'Patient/" + \
-                      ID + "\' ORDER BY date&fhirServer=" + FHIR_BASE_URL.strip("https://")
+    encounterQueryConstruction = SQL_TOOLKIT_URL + "=SELECT * FROM Encounter WHERE subject=\'Patient/" + \
+                                 ID + "\' ORDER BY date&fhirServer=" + FHIR_BASE_URL.strip("https://")
     # print("This the SQL query that has been generated: " + encounterQueryConstruction)
     encounterQuery = FHIRQueryGeneration(encounterQueryConstruction, header)
     # print("This is the FHIR encounter query that has been generated: " + encounterQuery)
@@ -281,9 +283,8 @@ def encounterJSONConstruction(encounterQuery, header):
     return encounterData
 
 def observationQueryConstruction(ID, header, FHIR_BASE_URL):
-    observationQueryConstruction = "https://sqltofhir.azurewebsites.net/api/HttpTrigger-Java?code=mXImjGEQqBxOwpQJKRhmtYuGhFJ1N93nONR" \
-                      "nTwJjsmOybCzOAIqpOQ%3D%3D&sqlQuery=SELECT * FROM Observation WHERE subject=\'Patient/" + \
-                      ID + "\' ORDER BY date&fhirServer=" + FHIR_BASE_URL.strip("https://")
+    observationQueryConstruction = SQL_TOOLKIT_URL + "=SELECT * FROM Observation WHERE subject=\'Patient/" + \
+                                   ID + "\' ORDER BY date&fhirServer=" + FHIR_BASE_URL.strip("https://")
     # print("This the SQL query that has been generated: " + observationQueryConstruction)
     observationQuery = FHIRQueryGeneration(observationQueryConstruction, header)
     # print("This is the FHIR observation query that has been generated: " + observationQuery)
@@ -361,19 +362,15 @@ def pushToFHIR(data, token, FHIR_BASE_URL):
     print("data constructed - " + data)
     headersPost = make_auth_headerPost(token)
     headersFHIRPost = make_auth_headerFHIRPost(token)
-    FHIRObservation = requests.request("POST", "https://json-fhir-tool.azurewebsites.net/api/json-fhir-tool",
-                                           data=data, headers=headersPost)#.replace("u", "")
+    FHIRObservation = requests.request("POST", JSON_FHIR_TOOLKIT_URL, data=data, headers=headersPost)
     # print("FHIRObservation - " + str(FHIRObservation))
-    # print(jsonConverter.dumps(FHIRObservation.json(), indent=4))
     observationPost = requests.request("POST", FHIR_BASE_URL + "/Observation", data=FHIRObservation,
                                        headers=headersFHIRPost)
-    # print(json.dumps(observationPost.json(), indent=4))
     return observationPost.json()["id"]
-    # return jsonConverter.dumps(observationPost.json(), indent=4)
 
 @app.route('/')
 def home():
-    return "link for documentation: https://app.swaggerhub.com/apis-docs/GCHeroes1/FHIR-SQL-API/1.0.0"
+    return "link for documentation: " + DOCUMENTATION_URL
 
 # @app.route('/test')
 # def test():
@@ -393,13 +390,14 @@ def headerProcessing(requestObject):
 def patients():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
     patientList = JSONResponse(FHIR_BASE_URL + "/Patient", headersSQL)
     patientData = patientJSONConstruction(patientList, headersSQL)
-    return jsonify(patientData)
+    return patientData
 
 @app.route('/Patient/<string:identifier>', methods=["GET"])
 def patient(identifier):
@@ -407,7 +405,8 @@ def patient(identifier):
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     ID = identifier
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -427,7 +426,8 @@ def patient(identifier):
 def patientSearch():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -453,7 +453,8 @@ def patientSearch():
 def medicationSearch():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -475,7 +476,8 @@ def medicationSearch():
 def conditionSearch():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -497,7 +499,8 @@ def conditionSearch():
 def encounterSearch():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -519,7 +522,8 @@ def encounterSearch():
 def observationSearch():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, " \
+               "SCOPE, FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
@@ -552,7 +556,8 @@ def pushDataProcessing(requestObject):
 def observationPush():
     FHIR_BASE_URL, token, ID = headerProcessing(request)
     if token is None:
-        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, FHIR_BASE_URL and url"
+        return "Please check that the information supplied in your header includes a correct CLIENT_ID, CLIENT_SECRET, SCOPE, " \
+               "FHIR_BASE_URL and url"
     if FHIR_BASE_URL is None:
         return "Please include a FHIR_BASE_URL"
     headersSQL = make_auth_header(token)
