@@ -17,9 +17,9 @@ def generateToken(headersObject):
     SCOPE = headersObject.get("SCOPE")
     payload = "grant_type=client_credentials&client_id={}&client_secret={}&scope={}".format(CLIENT_ID, CLIENT_SECRET,
                                                                                             SCOPE)
-    url = headersObject.get("url")
+    ACCESS_TOKEN_URL = headersObject.get("ACCESS_TOKEN_URL")
     headers = {'content-type': "application/x-www-form-urlencoded"}
-    res = requests.post(url, payload, headers=headers)
+    res = requests.post(ACCESS_TOKEN_URL, payload, headers=headers)
     if res.status_code == 200:
         response_json = res.json()
         return response_json.get('access_token', None)
